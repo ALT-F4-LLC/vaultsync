@@ -6,7 +6,7 @@ Vault helper utility used to sync remote state for local development.
 
 ## Example
 
-Below is a basic example of how to use `vaultsync`.
+Below is a basic example of how to use `vaultsync`. Please note, it was written quickly and only for reference. Better documentation will be provided in upcoming changes.
 
 ### Config
 
