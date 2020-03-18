@@ -1,5 +1,9 @@
 # vaultsync
 
+Vaultsync is a utility used to sync a source `Vault` server with a local server for development.
+
+> NOTE: This should only be used for development purposes!
+
 ## Example
 
 Below is a basic example of how to use `vaultsync`.
