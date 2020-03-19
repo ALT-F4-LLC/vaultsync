@@ -1,36 +1,35 @@
 package main
 
 import (
-	"github.com/erkrnt/vaultsync/internal"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	args, err := internal.GetArgs()
+	args, err := GetArgs()
 
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	config, err := internal.GetConfig(args.ConfigPath)
+	config, err := GetConfig(args.ConfigPath)
 
 	if err != nil {
 		logrus.Fatal("invalid_config")
 	}
 
-	client, err := internal.NewClient(config.TargetAddr, config.TargetToken)
+	client, err := NewClient(config.TargetAddr, config.TargetToken)
 
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	syncEnginesErr := internal.SyncEngines(client, config)
+	syncEnginesErr := SyncEngines(client, config)
 
 	if syncEnginesErr != nil {
 		logrus.Fatal(syncEnginesErr)
 	}
 
-	syncSecretsErr := internal.SyncSecrets(client, config)
+	syncSecretsErr := SyncSecrets(client, config)
 
 	if syncSecretsErr != nil {
 		logrus.Fatal(syncSecretsErr)
