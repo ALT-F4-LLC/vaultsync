@@ -14,6 +14,10 @@ The configuration file is the main source for `vaultsync` and is used to set the
 
 ```
 {
+  "vault_auth": {
+    "role_id": "<vault-approle-role-id>",
+    "secret_id": "<vault-approle-secret-id>"
+  },
   "vault_secrets": [
     {
       "engine": "kv",
