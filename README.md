@@ -14,11 +14,12 @@ The configuration file is the main source for `vaultsync` and is used to set the
 
 ```
 {
-  "vault_auth": {
+  "vault_source_addr": "http://localhost:8300",
+  "vault_source_auth": {
     "role_id": "<vault-approle-role-id>",
     "secret_id": "<vault-approle-secret-id>"
   },
-  "vault_secrets": [
+  "vault_source_secrets": [
     {
       "engine": "kv",
       "mount": "example/",
@@ -28,8 +29,6 @@ The configuration file is the main source for `vaultsync` and is used to set the
       "paths": ["localhost/api", "localhost/cron", "localhost/discord"]
     }
   ],
-  "vault_source_addr": "http://localhost:8300",
-  "vault_source_token": "<vault-source-token>",
   "vault_target_addr": "http://localhost:8200",
   "vault_target_token": "<vault-target-token>"
 }
