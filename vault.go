@@ -31,8 +31,8 @@ type LoginResult struct {
 // Login : login to Vault
 func Login(config *Config) (*string, error) {
 	auth := AppRole{
-		RoleID:   config.Auth.Credentials["role_id"],
-		SecretID: config.Auth.Credentials["secret_id"],
+		RoleID:   config.SourceAuth.Credentials["role_id"],
+		SecretID: config.SourceAuth.Credentials["secret_id"],
 	}
 
 	data, err := json.Marshal(auth)
@@ -118,7 +118,7 @@ func SyncEngines(client *api.Client, config *Config) error {
 		return err
 	}
 
-	for _, s := range config.Secrets {
+	for _, s := range config.SourceSecrets {
 		if engines[s.Mount] == nil {
 			err := MountEngine(client, s)
 
@@ -151,7 +151,7 @@ func SyncSecrets(client *api.Client, config *Config) error {
 
 	target := client.Logical()
 
-	for _, s := range config.Secrets {
+	for _, s := range config.SourceSecrets {
 		for _, p := range s.Paths {
 			path := fmt.Sprintf("%s/%s", s.Mount, p)
 

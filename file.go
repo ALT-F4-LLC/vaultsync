@@ -5,27 +5,29 @@ import (
 	"io/ioutil"
 )
 
+// ConfigAuth : auth configuration
 type ConfigAuth struct {
 	Credentials map[string]string `json:"credentials"`
 	Method      string            `json:"method"`
 }
 
-// ConfigSecret :
+// ConfigSecret : secrets configuration
 type ConfigSecret struct {
-	Engine  string            `json:"engine"`
-	Mount   string            `json:"mount"`
-	Options map[string]string `json:"options"`
-	Paths   []string          `json:"paths"`
+	Engine    string            `json:"engine"`
+	Mount     string            `json:"mount"`
+	Options   map[string]string `json:"options"`
+	Overwrite bool              `json:"overwrite"`
+	Paths     []string          `json:"paths"`
 }
 
 // Config : configuration for vaultsync
 type Config struct {
-	Auth        ConfigAuth     `json:"vault_auth"`
-	Secrets     []ConfigSecret `json:"vault_secrets"`
-	SourceAddr  string         `json:"vault_source_addr"`
-	SourceToken string         `json:"vault_source_token"`
-	TargetAddr  string         `json:"vault_target_addr"`
-	TargetToken string         `json:"vault_target_token"`
+	SourceAddr    string         `json:"vault_source_addr"`
+	SourceAuth    ConfigAuth     `json:"vault_source_auth"`
+	SourceSecrets []ConfigSecret `json:"vault_source_secrets"`
+	SourceToken   string         `json:"vault_source_token"`
+	TargetAddr    string         `json:"vault_target_addr"`
+	TargetToken   string         `json:"vault_target_token"`
 }
 
 // GetConfig : gets configuration
