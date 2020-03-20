@@ -1,11 +1,62 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/vault/api"
 	"github.com/sirupsen/logrus"
 )
+
+type AppRole struct {
+	RoleID   string `json:"role_id"`
+	SecretID string `json:"secret_id"`
+}
+
+type LoginAuthResult struct {
+	Accessor      string            `json:"accessor"`
+	ClientToken   string            `json:"client_token"`
+	LeaseDuration int               `json:"lease_duration"`
+	Metadata      map[string]string `json:"metadata"`
+	Policies      []string          `json:"policies"`
+	Renewable     bool              `json:"renewable"`
+}
+
+type LoginResult struct {
+	Auth LoginAuthResult `json:"auth"`
+}
+
+// Login : login to Vault
+func Login(config *Config) (*string, error) {
+	auth := AppRole{
+		RoleID:   config.Auth.Credentials["role_id"],
+		SecretID: config.Auth.Credentials["secret_id"],
+	}
+
+	data, err := json.Marshal(auth)
+
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("%s/v1/auth/approle/login", config.SourceAddr)
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
+
+	if err != nil {
+		return nil, err
+	}
+
+	var result LoginResult
+
+	json.NewDecoder(resp.Body).Decode(&result)
+
+	token := result.Auth.ClientToken
+
+	return &token, nil
+}
 
 // NewClient : get Vault client
 func NewClient(address string, token string) (*api.Client, error) {
@@ -82,11 +133,19 @@ func SyncEngines(client *api.Client, config *Config) error {
 
 // SyncSecrets : sync secrets from source to target
 func SyncSecrets(client *api.Client, config *Config) error {
+	token, err := Login(config)
+
+	if err != nil {
+		return err
+	}
+
 	sourceClient, err := NewClient(config.SourceAddr, config.SourceToken)
 
 	if err != nil {
 		return err
 	}
+
+	sourceClient.SetToken(*token)
 
 	source := sourceClient.Logical()
 

@@ -5,6 +5,11 @@ import (
 	"io/ioutil"
 )
 
+type ConfigAuth struct {
+	Credentials map[string]string `json:"credentials"`
+	Method      string            `json:"method"`
+}
+
 // ConfigSecret :
 type ConfigSecret struct {
 	Engine  string            `json:"engine"`
@@ -15,6 +20,7 @@ type ConfigSecret struct {
 
 // Config : configuration for vaultsync
 type Config struct {
+	Auth        ConfigAuth     `json:"vault_auth"`
 	Secrets     []ConfigSecret `json:"vault_secrets"`
 	SourceAddr  string         `json:"vault_source_addr"`
 	SourceToken string         `json:"vault_source_token"`
