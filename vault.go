@@ -123,6 +123,7 @@ func MountEngine(client *api.Client, secret ConfigSecret) error {
 	return nil
 }
 
+// SyncAppRoles : syncs approles from configuration to Vault service
 func SyncAppRoles(client *api.Client, config *Config) error {
 	logical := client.Logical()
 
@@ -146,10 +147,10 @@ func SyncAppRoles(client *api.Client, config *Config) error {
 
 			secretIDPath := fmt.Sprintf("%s/secret-id", rolePath)
 
-			secretIDSecret, secretIDErr := logical.Write(secretIDPath, secretIDData)
+			secretIDSecret, err := logical.Write(secretIDPath, secretIDData)
 
-			if secretIDErr != nil {
-				return secretIDErr
+			if err != nil {
+				return err
 			}
 
 			roleIDPath := fmt.Sprintf("%s/role-id", rolePath)
@@ -184,7 +185,7 @@ func SyncAppRoles(client *api.Client, config *Config) error {
 					"secret_id": secretID,
 				}
 
-				json, err := json.Marshal(approle)
+				json, err := json.MarshalIndent(approle, "", "\t")
 
 				if err != nil {
 					return err
