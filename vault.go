@@ -161,6 +161,14 @@ func SyncAppRoles(client *api.Client, config *Config) error {
 				return err
 			}
 
+			roleID := roleIDSecret.Data["role_id"]
+
+			secretID := secretIDSecret.Data["secret_id"]
+
+			fields := logrus.Fields{"role_id": roleID, "role_name": r.Name}
+
+			logrus.WithFields(fields).Info("Created AppRole in Vault")
+
 			if config.TargetAuthAppRolesOutput != nil {
 				outputPath, err := filepath.Abs(*config.TargetAuthAppRolesOutput)
 
@@ -176,10 +184,6 @@ func SyncAppRoles(client *api.Client, config *Config) error {
 					}
 				}
 
-				roleID := roleIDSecret.Data["role_id"]
-
-				secretID := secretIDSecret.Data["secret_id"]
-
 				approle := map[string]interface{}{
 					"role_id":   roleID,
 					"secret_id": secretID,
@@ -191,7 +195,9 @@ func SyncAppRoles(client *api.Client, config *Config) error {
 					return err
 				}
 
-				writePath := fmt.Sprintf("%s/%s.json", outputPath, r.Name)
+				filename := fmt.Sprintf("%s.json", r.Name)
+
+				writePath := fmt.Sprintf("%s/%s", outputPath, filename)
 
 				writeErr := ioutil.WriteFile(writePath, json, 0644)
 
@@ -199,9 +205,9 @@ func SyncAppRoles(client *api.Client, config *Config) error {
 					return writeErr
 				}
 
-				fields := logrus.Fields{"role_id": roleID, "role_name": r.Name}
+				fields := logrus.Fields{"filename": filename}
 
-				logrus.WithFields(fields).Info("Created AppRole in Vault")
+				logrus.WithFields(fields).Info("Created AppRole in folder")
 			}
 		}
 	}
