@@ -17,6 +17,12 @@ type ConfigAuth struct {
 	Method      string            `json:"method"`
 }
 
+// ConfigAuthMethod : auth method configuration
+type ConfigAuthMethod struct {
+	Options map[string]string `json:"options"`
+	Path    string            `json:"path"`
+}
+
 // ConfigSecret : secrets configuration
 type ConfigSecret struct {
 	Engine    string            `json:"engine"`
@@ -28,10 +34,11 @@ type ConfigSecret struct {
 
 // Config : configuration for vaultsync
 type Config struct {
-	SourceAuth         ConfigAuth     `json:"source_auth"`
-	SourceSecrets      []ConfigSecret `json:"source_secrets"`
-	SourcePoliciesPath string         `json:"source_policies_path"`
-	TargetAuth         ConfigAuth     `json:"target_auth"`
+	SourceAuth         ConfigAuth         `json:"source_auth"`
+	SourceSecrets      []ConfigSecret     `json:"source_secrets"`
+	SourcePoliciesPath string             `json:"source_policies_path"`
+	TargetAuth         ConfigAuth         `json:"target_auth"`
+	TargetAuthMethods  []ConfigAuthMethod `json:"target_auth_methods"`
 }
 
 // FilenameWithoutExt : removes extension from filename

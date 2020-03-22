@@ -46,4 +46,10 @@ func main() {
 	if syncEnginesErr != nil {
 		logrus.Fatal(syncPoliciesErr)
 	}
+
+	syncAuthMethodsErr := SyncAuthMethods(targetClient, config)
+
+	if syncAuthMethodsErr != nil {
+		logrus.Fatal(syncAuthMethodsErr)
+	}
 }

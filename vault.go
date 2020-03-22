@@ -121,6 +121,35 @@ func MountEngine(client *api.Client, secret ConfigSecret) error {
 	return nil
 }
 
+// SyncAuthMethods : syncs auth methods from config to client Vault service
+func SyncAuthMethods(client *api.Client, config *Config) error {
+	sys := client.Sys()
+
+	mounts, err := sys.ListAuth()
+
+	if err != nil {
+		return err
+	}
+
+	for _, m := range config.TargetAuthMethods {
+		path := fmt.Sprintf("%s/", m.Path)
+
+		if mounts[path] == nil {
+			input := &api.MountInput{
+				Type: m.Options["type"],
+			}
+
+			enableErr := sys.EnableAuthWithOptions(m.Path, input)
+
+			if enableErr != nil {
+				return enableErr
+			}
+		}
+	}
+
+	return nil
+}
+
 // SyncEngines : syncs secret engines from config
 func SyncEngines(client *api.Client, config *Config) error {
 	engines, err := GetEngines(client)
@@ -130,7 +159,9 @@ func SyncEngines(client *api.Client, config *Config) error {
 	}
 
 	for _, s := range config.SourceSecrets {
-		if engines[s.Mount] == nil {
+		path := fmt.Sprintf("%s/", s.Mount)
+
+		if engines[path] == nil {
 			err := MountEngine(client, s)
 
 			if err != nil {
