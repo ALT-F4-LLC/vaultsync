@@ -169,8 +169,8 @@ func SyncAppRoles(client *api.Client, config *Config) error {
 
 			logrus.WithFields(fields).Info("Created AppRole in Vault")
 
-			if config.TargetAuthAppRolesOutput != nil {
-				outputPath, err := filepath.Abs(*config.TargetAuthAppRolesOutput)
+			if r.Output != nil {
+				outputPath, err := filepath.Abs(*r.Output)
 
 				if err != nil {
 					return err

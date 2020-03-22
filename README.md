@@ -14,23 +14,52 @@ The configuration file is the main source for `vaultsync` and is used to set the
 
 ```
 {
-  "vault_source_addr": "http://localhost:8300",
-  "vault_source_auth": {
-    "role_id": "<vault-approle-role-id>",
-    "secret_id": "<vault-approle-secret-id>"
+  "source_auth": {
+    "address": "http://localhost:8300",
+    "credentials": {
+      "role_id": "<vault_role_id>,
+      "secret_id": "<vault_secret_id>"
+    },
+    "method": "approle"
   },
-  "vault_source_secrets": [
+  "source_policies_path": "./policies",
+  "source_secrets": [
     {
       "engine": "kv",
-      "mount": "example/",
+      "mount": "example",
       "options": {
         "version": "1"
       },
-      "paths": ["localhost/api", "localhost/cron", "localhost/discord"]
+      "paths": ["localhost/twitch_oauth_creds"]
     }
   ],
-  "vault_target_addr": "http://localhost:8200",
-  "vault_target_token": "<vault-target-token>"
+  "target_auth": {
+    "address": "http://localhost:8200",
+    "credentials": {
+      "token": "<vault_token>"
+    },
+    "method": "token"
+  },
+  "target_auth_approles": [
+    {
+      "name": "api",
+      "options": {
+        "token_max_ttl": "30s",
+        "token_policies": "api",
+        "token_ttl": "30s"
+      },
+      "path": "approle"
+    },
+  ],
+  "target_auth_methods": [
+    {
+      "options": {
+        "type": "approle"
+      },
+      "output": "./approles",
+      "path": "approle"
+    }
+  ],
 }
 ```
 
