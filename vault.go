@@ -168,7 +168,7 @@ func SyncPolicies(client *api.Client, config *Config) error {
 		putErr := sys.PutPolicy(name, string(policy))
 
 		if putErr != nil {
-			return err
+			return putErr
 		}
 	}
 
