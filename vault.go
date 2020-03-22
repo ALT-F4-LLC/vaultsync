@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/hashicorp/vault/api"
 	"github.com/sirupsen/logrus"
@@ -117,6 +119,98 @@ func MountEngine(client *api.Client, secret ConfigSecret) error {
 	fields := logrus.Fields{"mount": secret.Mount}
 
 	logrus.WithFields(fields).Info("Created engine")
+
+	return nil
+}
+
+// SyncAppRoles : syncs approles from configuration to Vault service
+func SyncAppRoles(client *api.Client, config *Config) error {
+	logical := client.Logical()
+
+	for _, r := range config.TargetAuthAppRoles {
+		rolePath := fmt.Sprintf("auth/%s/role/%s", r.Path, r.Name)
+
+		exists, err := logical.Read(rolePath)
+
+		if err != nil {
+			return err
+		}
+
+		if exists == nil {
+			_, err := logical.Write(rolePath, r.Options)
+
+			if err != nil {
+				return err
+			}
+
+			var secretIDData map[string]interface{}
+
+			secretIDPath := fmt.Sprintf("%s/secret-id", rolePath)
+
+			secretIDSecret, err := logical.Write(secretIDPath, secretIDData)
+
+			if err != nil {
+				return err
+			}
+
+			roleIDPath := fmt.Sprintf("%s/role-id", rolePath)
+
+			roleIDSecret, err := logical.Read(roleIDPath)
+
+			if err != nil {
+				return err
+			}
+
+			roleID := roleIDSecret.Data["role_id"]
+
+			secretID := secretIDSecret.Data["secret_id"]
+
+			fields := logrus.Fields{"role_id": roleID, "role_name": r.Name}
+
+			logrus.WithFields(fields).Info("Created AppRole in Vault")
+
+			if config.TargetAuthAppRolesOutput != nil {
+				outputPath, err := filepath.Abs(*config.TargetAuthAppRolesOutput)
+
+				if err != nil {
+					return err
+				}
+
+				if _, err := os.Stat(outputPath); os.IsNotExist(err) {
+					err := os.MkdirAll(outputPath, 0755)
+
+					if err != nil {
+						return err
+					}
+				}
+
+				approle := map[string]interface{}{
+					"role_id":   roleID,
+					"secret_id": secretID,
+				}
+
+				json, err := json.MarshalIndent(approle, "", "\t")
+
+				if err != nil {
+					return err
+				}
+
+				filename := fmt.Sprintf("%s.json", r.Name)
+
+				writePath := fmt.Sprintf("%s/%s", outputPath, filename)
+
+				writeErr := ioutil.WriteFile(writePath, json, 0644)
+
+				if writeErr != nil {
+					return writeErr
+				}
+
+				fields := logrus.Fields{"filename": filename}
+
+				logrus.WithFields(fields).Info("Created AppRole in folder")
+			}
+		}
+	}
 
 	return nil
 }

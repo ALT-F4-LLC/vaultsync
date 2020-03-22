@@ -52,4 +52,10 @@ func main() {
 	if syncAuthMethodsErr != nil {
 		logrus.Fatal(syncAuthMethodsErr)
 	}
+
+	syncAppRolesErr := SyncAppRoles(targetClient, config)
+
+	if syncAppRolesErr != nil {
+		logrus.Fatal(syncAppRolesErr)
+	}
 }

@@ -17,6 +17,13 @@ type ConfigAuth struct {
 	Method      string            `json:"method"`
 }
 
+// ConfigAuthAppRole : approle auth method configuration
+type ConfigAuthAppRole struct {
+	Name    string                 `json:"name"`
+	Options map[string]interface{} `json:"options"`
+	Path    string                 `json:"path"`
+}
+
 // ConfigAuthMethod : auth method configuration
 type ConfigAuthMethod struct {
 	Options map[string]string `json:"options"`
@@ -34,11 +41,13 @@ type ConfigSecret struct {
 
 // Config : configuration for vaultsync
 type Config struct {
-	SourceAuth         ConfigAuth         `json:"source_auth"`
-	SourceSecrets      []ConfigSecret     `json:"source_secrets"`
-	SourcePoliciesPath string             `json:"source_policies_path"`
-	TargetAuth         ConfigAuth         `json:"target_auth"`
-	TargetAuthMethods  []ConfigAuthMethod `json:"target_auth_methods"`
+	SourceAuth               ConfigAuth          `json:"source_auth"`
+	SourceSecrets            []ConfigSecret      `json:"source_secrets"`
+	SourcePoliciesPath       string              `json:"source_policies_path"`
+	TargetAuth               ConfigAuth          `json:"target_auth"`
+	TargetAuthAppRoles       []ConfigAuthAppRole `json:"target_auth_approles"`
+	TargetAuthAppRolesOutput *string             `json:"target_auth_approles_output"`
+	TargetAuthMethods        []ConfigAuthMethod  `json:"target_auth_methods"`
 }
 
 // FilenameWithoutExt : removes extension from filename
