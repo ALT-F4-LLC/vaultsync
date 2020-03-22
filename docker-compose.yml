@@ -1,0 +1,23 @@
+services:
+  source:
+    cap_add:
+      - IPC_LOCK
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: d23c2d2a-a6a8-4742-9b61-c8c9a5f1031b
+    image: vault:1.3.4
+    ports:
+      - "127.0.0.1:8300:8200"
+    volumes:
+      - source:/vault/file
+  target:
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: 709e007e-a35c-4b3d-8c86-e393fb851ace
+    image: vault:1.3.4
+    ports:
+      - "127.0.0.1:8200:8200"
+    volumes:
+      - target:/vault/file
+version: "3.7"
+volumes:
+  source:
+  target:

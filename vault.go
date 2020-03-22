@@ -4,17 +4,20 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/hashicorp/vault/api"
 	"github.com/sirupsen/logrus"
 )
 
+// AppRole : defines app role for authentication
 type AppRole struct {
 	RoleID   string `json:"role_id"`
 	SecretID string `json:"secret_id"`
 }
 
+// LoginAuthResult : defines vault successful login
 type LoginAuthResult struct {
 	Accessor      string            `json:"accessor"`
 	ClientToken   string            `json:"client_token"`
@@ -29,31 +32,39 @@ type LoginResult struct {
 }
 
 // Login : login to Vault
-func Login(config *Config) (*string, error) {
-	auth := AppRole{
-		RoleID:   config.SourceAuth.Credentials["role_id"],
-		SecretID: config.SourceAuth.Credentials["secret_id"],
+func Login(auth ConfigAuth) (*string, error) {
+	var token string
+
+	if auth.Method == "approle" {
+		approle := AppRole{
+			RoleID:   auth.Credentials["role_id"],
+			SecretID: auth.Credentials["secret_id"],
+		}
+
+		data, err := json.Marshal(approle)
+
+		if err != nil {
+			return nil, err
+		}
+
+		url := fmt.Sprintf("%s/v1/auth/approle/login", auth.Address)
+
+		resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
+
+		if err != nil {
+			return nil, err
+		}
+
+		var result LoginResult
+
+		json.NewDecoder(resp.Body).Decode(&result)
+
+		token = result.Auth.ClientToken
 	}
 
-	data, err := json.Marshal(auth)
-
-	if err != nil {
-		return nil, err
+	if auth.Method == "token" {
+		token = auth.Credentials["token"]
 	}
-
-	url := fmt.Sprintf("%s/v1/auth/approle/login", config.SourceAddr)
-
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
-
-	if err != nil {
-		return nil, err
-	}
-
-	var result LoginResult
-
-	json.NewDecoder(resp.Body).Decode(&result)
-
-	token := result.Auth.ClientToken
 
 	return &token, nil
 }
@@ -131,21 +142,54 @@ func SyncEngines(client *api.Client, config *Config) error {
 	return nil
 }
 
+// SyncPolicies : syncs policies to client Vault service
+func SyncPolicies(client *api.Client, config *Config) error {
+	policies, err := GetPolicies(config.SourcePoliciesPath)
+
+	if err != nil {
+		return err
+	}
+
+	sys := client.Sys()
+
+	for _, p := range policies {
+		filename := p.Name()
+
+		path := fmt.Sprintf("%s/%s", config.SourcePoliciesPath, filename)
+
+		policy, err := ioutil.ReadFile(path)
+
+		if err != nil {
+			return err
+		}
+
+		name := FilenameWithoutExt(filename)
+
+		putErr := sys.PutPolicy(name, string(policy))
+
+		if putErr != nil {
+			return putErr
+		}
+	}
+
+	return nil
+}
+
 // SyncSecrets : sync secrets from source to target
 func SyncSecrets(client *api.Client, config *Config) error {
-	token, err := Login(config)
+	sourceToken, err := Login(config.SourceAuth)
 
 	if err != nil {
 		return err
 	}
 
-	sourceClient, err := NewClient(config.SourceAddr, config.SourceToken)
+	sourceClient, err := NewClient(config.SourceAuth.Address, *sourceToken)
 
 	if err != nil {
 		return err
 	}
 
-	sourceClient.SetToken(*token)
+	sourceClient.SetToken(*sourceToken)
 
 	source := sourceClient.Logical()
 
